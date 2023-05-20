@@ -5,32 +5,37 @@ import Loader from "../components/Loader";
 import {List, ListItemText} from "@mui/material";
 import ListItem from "@mui/material/ListItem";
 import Grid from "@mui/material/Grid";
+import {EmployeesListStore} from '../store/EmoloyeeList';
+import { observer } from 'mobx-react-lite';
 
+const store = new EmployeesListStore();
 
-export default function EmployeeList() {
-
-    const [data, setData] = useState([]);
-    const [isLoaded, setIsLoaded] = useState(false)
-
+function EmployeeList() {
     useEffect(() => {
-        fetch('https://jsonplaceholder.typicode.com/users/')
-            .then(response => response.json())
-            .then(json => setData(json))
-        setIsLoaded(true);
+        store.fetchEmployees()
     }, [])
 
     return (
-        isLoaded ?
-            <div>
-                <List component="nav">
-                    {data.map(record => (
-                        <ListItem button component={Link} to={'/employee/' + record.id}>
-                            <ListItemText primary={record.name}/>
-                        </ListItem>
-                    ))}
-                </List>
-            </div>
-            :
-            <Loader/>
+        <>
+            {!store.isLoading ? (
+                <div>
+                    <List component="nav">
+                        {store.employees.map((record) => (
+                            <ListItem
+                                key={record.id}
+                                component={Link}
+                                to={'/employee/' + record.id}
+                            >
+                                <ListItemText primary={record.name}/>
+                            </ListItem>
+                        ))}
+                    </List>
+                </div>
+            ) : (
+                <Loader/>
+            )}
+        </>
     );
 }
+
+export default observer(EmployeeList);

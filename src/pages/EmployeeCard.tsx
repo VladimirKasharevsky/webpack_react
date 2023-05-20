@@ -7,6 +7,11 @@ import EmployeeView from "./EmployeeView";
 import EmployeeEdit from './EmployeeEdit';
 import {Button} from "@mui/material";
 
+import {EmployeesCardStore} from '../store/EmployeeCard';
+import { observer } from 'mobx-react-lite';
+
+const store = new EmployeesCardStore;
+
 export interface Employee {
     name: string,
     email: string,
@@ -17,39 +22,12 @@ export interface Employee {
 
 export default function EmployeeCard() {
 
-    const {id} = useParams();
     const [employee, setEmployee] = useState<Employee | null>(null);
-    const [isEdit, setEdit] = useState(false);
-    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
-        fetch('https://jsonplaceholder.typicode.com/users/' + id)
-            .then(response => response.json())
-            .then(json => {
-                setEmployee(json)
-                setIsLoading(false);
-            })
-    }, [id])
+        store.fetchEmployee()
+    }, [])
 
-    function saveEmployee() {
-        setIsLoading(true);
-        const request = {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(employee)
-        };
-        fetch('https://jsonplaceholder.typicode.com/users/' + id, request)
-            .then(response => response.json())
-            .then(json => {
-                setEmployee(json)
-                setIsLoading(false);
-                setEdit(false);
-            });
-    }
-
-    const onclick = () => {
-        setEdit(true)
-    }
 
     const setEmployeeInfo = (param: keyof Employee, value: string) => {
         setEmployee((prev) => ({
@@ -59,29 +37,29 @@ export default function EmployeeCard() {
     }
 
     return (
-        !isLoading ?
+        !store.isLoading ?
             <>
-                {isEdit ? (
+                {store.isEdit ? (
                         <EmployeeEdit
-                            email={employee.email}
-                            name={employee.name}
-                            phone={employee.phone}
-                            username={employee.username}
-                            website={employee.website}
+                            email={store.employeeCard.email}
+                            name={store.employeeCard.name}
+                            phone={store.employeeCard.phone}
+                            username={store.employeeCard.username}
+                            website={store.employeeCard.website}
                             setEmployeeInfo={setEmployeeInfo}
                         />
                     ) :
                     employee && (
-                        <EmployeeView email={employee.email}
-                                      name={employee.name}
-                                      phone={employee.phone}
-                                      username={employee.username}
-                                      website={employee.website}/>
+                        <EmployeeView email={store.employeeCard.email}
+                                      name={store.employeeCard.name}
+                                      phone={store.employeeCard.phone}
+                                      username={store.employeeCard.username}
+                                      website={store.employeeCard.website}/>
                     )
                 }
                 <div>
-                    <Button variant="contained" disabled={isEdit} onClick={onclick}>Edit</Button>
-                    <Button variant="contained" disabled={!isEdit} onClick={saveEmployee}>Save</Button>
+                    <Button variant="contained" disabled={store.isEdit} onClick={store.onclick}>Edit</Button>
+                    <Button variant="contained" disabled={!store.isEdit} onClick={store.saveEmployee}>Save</Button>
                 </div>
             </> :
             <Loader/>
